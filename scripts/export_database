@@ -11,13 +11,13 @@ To use listing all source names there have to be loaded script
 couchdb_views/export_database.js.
 
 For accessing the Couch database the following variables are read from the
-CouchDb section of the akara.conf file:
+CouchDb section of the akara.ini file:
     Url
     Username
     Password
 
 For accessing the Rackspace the following variables are read from the
-Rackspace section of the akara.conf file:
+Rackspace section of the akara.ini file:
     Username
     ApiKey
     ContainerName
