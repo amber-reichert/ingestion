@@ -1,0 +1,18 @@
+{
+    "name": "texas",
+    "type": "oai_verbs",
+    "metadata_prefix": "untl",
+    "endpoint_url": "http://digital.library.unt.edu/oai/",
+    "subresources": [], 
+    "contributor": {
+        "@id": "http://dp.la/api/contributor/texas",
+        "name": "Texas"
+    },
+    "enrichments_coll": [
+        "/oai-set-name?sets_service=/oai.listsets.json?endpoint=http://digital.library.unt.edu/oai/"
+    ],
+    "enrichments_rec": [
+        "/select-id?prop=header%2Fidentifier",
+        "/oai_untl_to_dpla"
+    ]
+}

@@ -166,7 +166,7 @@ class oaiservice(object):
         retrieved_t = time.time()
         self.logger.debug('Retrieved in {0}s'.format(retrieved_t - start_t))
 
-        if metadataPrefix == "mods" or metadataPrefix == "marc":
+        if metadataPrefix in ["mods", "marc", "untl"]:
             xml_content = XML_PARSE(content)
             records = []
             for record in xml_content["OAI-PMH"]["ListRecords"]["record"]:
