@@ -12,6 +12,9 @@
     "prefix_dc": "{0}_dc.xml",
     "shown_at_url": "http://archive.org/details/{0}",
     "subresources": {
+        "medicalheritagelibrary": {
+            "title": "Medical Heritage Library"
+        },
         "blc": {
             "title": "Boston Library Consortium"
         },
