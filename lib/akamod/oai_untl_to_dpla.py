@@ -319,21 +319,17 @@ def rights_transform(d, p):
         qualifier = s.get("qualifier")
         
         if qualifier == "license":
-            try:
-                license = "License: " + RIGHTS_TERM_LABEL[s.get("#text")]
-            except:
-                logger.error("Term %s not in RIGHTS_TERM_LABEL for %s" %
-                             (s.get("#text"), d["_id"]))
+            text = s.get("#text")
+            if text != "copyright":
+                try:
+                    license = "License: " + RIGHTS_TERM_LABEL[s.get("#text")]
+                except:
+                    logger.error("Term %s not in RIGHTS_TERM_LABEL for %s" %
+                                 (s.get("#text"), d["_id"]))
         elif qualifier == "statement":
             statement = s.get("#text")
 
-    if statement is not None and license is None:
-        logger.debug("Statement without license for records %s" % d["_id"])
-
-    if license is not None:
-        rights = license
-        if statement is not None:
-            rights += "; " + statement
+    rights = "; ".join(filter(None, [rights, statement]))
 
     return {"rights": rights} if rights else {}
 
@@ -355,10 +351,8 @@ def identifier_transform(d, p):
 def spatial_transform(d, p):
     spatial = []
     for s in iterify(getprop(d, p)):
-        if isinstance(s, basestring):
-            spatial.append(s)
-            logger.debug("SPATIAL: string for %s" % d["_id"])
-        elif s.get("qualifier") in ["placeName", "placePoint", "placeBox"]:
+        if "qualifier" in s and s["qualifier"] in ["placeName", "placePoint",
+                                                   "placeBox"]:
             spatial.append(s.get("#text"))
 
     return {"spatial": spatial} if spatial else {}
@@ -371,9 +365,6 @@ def publisher_transform(d, p):
                                          s["name"].strip()))
 
     return {"publisher": publisher} if publisher else {}
-
-def spectype_and_format_transform(d, p):
-    return {}
 
 def description_transform(d, p):
     description = []
@@ -422,9 +413,7 @@ def subject_transform(d, p):
 def date_transform(d, p):
     date = []
     for s in iterify(getprop(d, p)):
-        if isinstance(s, basestring):
-            logger.debug("DATE: basestring %s for %s" % (s, d["_id"]))
-        elif s.get("qualifier") == "creation":
+        if "qualifier" in s and s["qualifier"] == "creation":
             date.append(s.get("#text"))
 
     # Get dates from coverage
@@ -554,7 +543,7 @@ AGGREGATION_TRANSFORMER = {
     "ingestType"         : lambda d, p: {"ingestType": getprop(d, p)},
     "ingestDate"         : lambda d, p: {"ingestDate": getprop(d, p)},
     "originalRecord"     : lambda d, p: {"originalRecord": getprop(d, p)},
-    META + "identifier"  : identifier_transform,
+    META + "identifier"  : url_transform,
     "originalRecord/header/setSpec": dataprovider_transform
 }
 
