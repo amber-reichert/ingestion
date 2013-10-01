@@ -408,7 +408,7 @@ def subject_transform(d, p):
             subject.append(s.get("#text"))
     subject = filter(None, subject)
 
-    return {"subject": subject} if subject else {}
+    return {"subject": " - ".join(subject)} if subject else {}
 
 def date_transform(d, p):
     date = []
