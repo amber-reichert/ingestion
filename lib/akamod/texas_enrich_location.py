@@ -25,9 +25,9 @@ def texas_enrich_location(body, ctype, action="texas_enrich_location",
         return "Unable to parse body as JSON"
 
 
-    def _get_coordinates(values):
+    def _get_coordinates(value):
         lat, lon = None, None
-        for v in values:
+        for v in value.split(";"):
             if "north=" in v:
                 lat = v.split("=")[-1]
             elif "east=" in v:
@@ -42,37 +42,23 @@ def texas_enrich_location(body, ctype, action="texas_enrich_location",
         spatial = []
         values = getprop(data,prop)
 
-        for i in range(len(values)):
-            sp = {}
-            if " - " in values[i]:
-                values[i] = [s.strip() for s in values[i].split(" - ")]
-            elif ";" in values[i]: 
-                values[i] = [s.strip() for s in values[i].split(";")]
-            else:
-                values[i] = [values[i]]
+        for v in values:
+            sp = {"name": v}
+            shredded = [s.strip() for s in v.split(" - ")]
 
-            coordinates = _get_coordinates(values[i]) 
+            coordinates = _get_coordinates(sp["name"]) 
             if coordinates:
                 sp["name"] = "%s, %s" % coordinates
-            else:
-                sp["name"] = " ".join(values[i])
 
-            if len(values[i]) < 5:
+            if len(shredded) < 5:
                 if not re.search("\d", sp["name"]):
-                    sp["country"] = values[i][0]
+                    sp["country"] = shredded[0]
                 if "country" in sp:
-                    if sp["country"] == "United States":
+                    if sp["country"] in ["United States", "Canada"]:
                         try:
-                            sp["state"] = values[i][1]
-                            sp["county"] = values[i][2]
-                            sp["city"] = values[i][3]
-                        except Exception, e:
-                            logger.debug("Error enriching location %s: %s" %
-                                         (data["_id"], e))
-                    elif sp["country"] == "Canada":
-                        try:
-                            sp["provence"] = values[i][1]
-                            sp["city"] = values[i][2]
+                            sp["state"] = shredded[1]
+                            sp["county"] = shredded[2]
+                            sp["city"] = shredded[3]
                         except Exception, e:
                             logger.debug("Error enriching location %s: %s" %
                                          (data["_id"], e))
@@ -81,22 +67,3 @@ def texas_enrich_location(body, ctype, action="texas_enrich_location",
         setprop(data, prop, spatial)
 
     return json.dumps(data)
-
-def replace_state_abbreviations(name):
-    """
-    Replace abbreviations used in SCDL data with more common versions.
-    """
-    ABBREV = {
-        "(Ala.)": "AL",
-        "(Calif.)": "CA",
-        "(Conn.)": "CT",
-        "(Ill.)": "IL",
-        "(Mass.)": "MA",
-        "(Miss.)": "MS",
-        "(Tex.)": "TX",
-        "(Wash.)": "WA",
-    }
-    for abbrev in ABBREV: 
-        if (abbrev in name): 
-            return name.replace(abbrev, ABBREV[abbrev])
-    return name
