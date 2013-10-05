@@ -19,6 +19,7 @@ from amara.pushtree import pushtree
 from amara.thirdparty import httplib2
 from akara import logger
 import xmltodict
+from dplaingestion.selector import getprop
 
 OAI_NAMESPACE = u"http://www.openarchives.org/OAI/2.0/"
 
@@ -154,6 +155,8 @@ class oaiservice(object):
         '''
         List records. Use either the resumption token or set id.
         '''
+        error = None
+
         if resumption_token:
             params = {'verb' : 'ListRecords', 'resumptionToken': resumption_token}
         else:
@@ -169,14 +172,16 @@ class oaiservice(object):
         if metadataPrefix in ["mods", "marc", "untl"]:
             xml_content = XML_PARSE(content)
             records = []
-            for record in xml_content["OAI-PMH"]["ListRecords"]["record"]:
-                id = record["header"]["identifier"]
-                if "null" not in id:
-                    records.append((id, record))
-            if "resumptionToken" in xml_content["OAI-PMH"]["ListRecords"]:
-                resumption_token = xml_content["OAI-PMH"]["ListRecords"]["resumptionToken"]
-            else:
-                resumption_token = ''
+            error = getprop(xml_content, "OAI-PMH/error/#text", True)
+            if error is None:
+                for record in xml_content["OAI-PMH"]["ListRecords"]["record"]:
+                    id = record["header"]["identifier"]
+                    if "null" not in id:
+                        records.append((id, record))
+                if "resumptionToken" in xml_content["OAI-PMH"]["ListRecords"]:
+                    resumption_token = xml_content["OAI-PMH"]["ListRecords"]["resumptionToken"]
+                else:
+                    resumption_token = ''
         else:
             doc = bindery.parse(url, model=LISTRECORDS_MODELS[metadataPrefix])
             records, first_id = metadata_dict(generate_metadata(doc),
@@ -190,7 +195,8 @@ class oaiservice(object):
             else:
                 resumption_token = ''
 
-        return {'records' : records, 'resumption_token' : resumption_token}
+        return {'records': records, 'resumption_token': resumption_token,
+                'error': error}
 
 #
 OAI_LISTSETS_XML = """<?xml version="1.0" encoding="UTF-8"?>

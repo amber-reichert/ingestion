@@ -316,18 +316,20 @@ def rights_transform(d, p):
     license = None
     statement = None
     for s in iterify(getprop(d, p)):
-        qualifier = s.get("qualifier")
+        try:
+            qualifier = s.get("qualifier")
+            text = s.get("#text")
+        except:
+            continue
         
         if qualifier == "license":
-            text = s.get("#text")
-            if text != "copyright":
-                try:
-                    license = "License: " + RIGHTS_TERM_LABEL[s.get("#text")]
-                except:
-                    logger.error("Term %s not in RIGHTS_TERM_LABEL for %s" %
-                                 (s.get("#text"), d["_id"]))
+             try:
+                 license = "License: " + RIGHTS_TERM_LABEL[text]
+             except:
+                 logger.error("Term %s not in RIGHTS_TERM_LABEL for %s" %
+                              (text, d["_id"]))
         elif qualifier == "statement":
-            statement = s.get("#text")
+            statement = text
 
     rights = "; ".join(filter(None, [rights, statement]))
 
@@ -336,15 +338,25 @@ def rights_transform(d, p):
 def identifier_transform(d, p):
     identifier = []
     for s in iterify(getprop(d, p)):
-        if "qualifier" in s and "#text" in s:
-            identifier.append("%s: %s" % (s["qualifier"], s["#text"]))
+        try:
+            qualifier = s.get("qualifier")
+            text = s.get("#text")
+        except:
+            continue
+        if qualifier == "license":
+            identifier.append("%s: %s" % (qualifier, text))
 
     # Add rights values as well
     rights = getprop(d, META + "rights", True)
     if rights is not None:
         for s in iterify(rights):
-            if "qualifier" in s and "#text" in s:
-                identifier.append("%s: %s" % (s["qualifier"], s["#text"]))
+            try:
+                qualifier = s.get("qualifier")
+                text = s.get("#text")
+            except:
+                continue
+            if qualifier == "statement":
+                identifier.append("%s: %s" % (qualifier, text))
 
     return {"identifier": identifier} if identifier else {}
 
@@ -437,8 +449,11 @@ def date_transform(d, p):
 def url_transform(d, p):
     urls = {}
     for s in iterify(getprop(d, p)):
-        qualifier = s.get("qualifier")
-        text = s.get("#text")
+        try:
+            qualifier = s.get("qualifier")
+            text = s.get("#text")
+        except:
+            continue
         if qualifier == "itemURL":
             urls["isShownAt"] = text
         elif qualifier == "thumbnailURL":
@@ -502,6 +517,8 @@ def contributor_transform(d, p):
         elif "name" in s:
             contributor.append(s.get("name"))
 
+    if not contributor:
+        logger.error("NO CONTRIBUTOR")
     return {"contributor": contributor} if contributor else {}
 
 def relation_transform(d, p):
