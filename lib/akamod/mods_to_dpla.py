@@ -40,13 +40,19 @@ CONTEXT = {
 
 # UVA specific transforms
 def subject_transform_uva(d, p):
+    def _join_on_double_hyphen(subject_list):
+        if any(["--" in s for s in subject_list]):
+            return subject_list
+        else:
+            return ["--".join(subject_list)]
+
     subject = []
     for _dict in iterify(getprop(d, p)):
         # Extract subject from both "topic" and "name" fields
         if "topic" in _dict:
             topic = _dict["topic"]
             if isinstance(topic, list):
-                subject += topic
+                subject.extend(_join_on_double_hyphen(topic))
             else:
                 subject.append(topic)
         if "name" in _dict:
