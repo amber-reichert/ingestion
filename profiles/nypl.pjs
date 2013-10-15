@@ -1,14 +1,23 @@
 {
     "name": "nypl",
     "type": "nypl",
-    "endpoint_url": "http://j2k.repo.nypl.org/api/v1/items/{0}",
-    "get_sets_url": "http://j2k.repo.nypl.org/api/v1/items/listCollections",
-    "get_records_url": "http://j2k.repo.nypl.org/api/v1/items/mods/{0}",
+    "endpoint_url": "http://api.repo.nypl.org/api/v1/items/{0}.xml",
+    "get_sets_url": "http://api.repo.nypl.org/api/v1/items/listCollections",
+    "get_records_url": "http://api.repo.nypl.org/api/v1/items/mods/{0}.xml",
     "endpoint_url_params": {
         "page": 1,
         "per_page": 100
     },
-    "subresources": [],
+    "subresources": {
+        "02d1c8f0-c52d-012f-a615-58d385a7bc34": {
+            "id": "02d1c8f0-c52d-012f-a615-58d385a7bc34",
+            "title": "Thomas Addis Emmet collection, 1483-1876, bulk (1700-1800)"
+        },
+        "6a373d50-c5d3-012f-a6fb-58d385a7bc34": {
+            "id": "6a373d50-c5d3-012f-a6fb-58d385a7bc34",
+            "title": "Lawrence H. Slaughter Collection of English maps, charts, globes, books and atlases"
+        }
+    },
     "contributor": {
         "@id": "http://dp.la/api/contributor/nypl",
         "name": "New York Public Library"
@@ -35,6 +44,7 @@
         "/lookup?prop=sourceResource%2Flanguage%2Fname&target=sourceResource%2Flanguage%2Fname&substitution=iso639_3",
         "/lookup?prop=sourceResource%2Flanguage%2Fname&target=sourceResource%2Flanguage%2Fiso639_3&substitution=iso639_3&inverse=True",
         "/set_prop?prop=sourceResource%2Frights&value=No%20Known%20US%20Copyright%20Restrictions",
-        "/copy_prop?prop=provider%2Fname&to_prop=dataProvider&create=True&no_overwrite=True"
+        "/copy_prop?prop=provider%2Fname&to_prop=dataProvider&create=True&no_overwrite=True",
+        "/setprop?prop=sourceResource%2FstateLocatedIn&value=New%20York"
     ]
 }

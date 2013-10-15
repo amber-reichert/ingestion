@@ -4,6 +4,7 @@ import sys
 import time
 import fnmatch
 import xmltodict
+import ConfigParser
 from urllib import urlencode
 from amara.thirdparty import json
 from amara.thirdparty import httplib2
@@ -45,6 +46,7 @@ class Fetcher(object):
     """
     def __init__(self, profile, uri_base):
         """Set common attributes"""
+        self.headers = {}
         self.uri_base = uri_base
         self.provider = profile.get("name")
         self.blacklist = profile.get("blacklist")
@@ -54,6 +56,9 @@ class Fetcher(object):
         self.collection_titles = profile.get("collection_titles")
         self.http_handle = httplib2.Http('/tmp/.pollcache')
         self.http_handle.force_exception_as_status_code = True
+        # For fetchers that need access to configuration parameters
+        self.config = ConfigParser.ConfigParser()
+        self.config.readfp(open("akara.ini"))
 
     def remove_blacklisted_subresources(self):
         if self.blacklist:
@@ -70,14 +75,14 @@ class Fetcher(object):
                 url += "?" + urlencode(params)
 
         for i in range(attempts):
-            resp, content = self.http_handle.request(url)
+            resp, content = self.http_handle.request(url, headers=self.headers)
             # Break if 2xx response status
             if resp["status"].startswith("2"):
                 break
             time.sleep(2)
 
         # Handle non 2xx response status
-        if not resp["status"].startswith("2"):
+        if not resp["status"].startswith("2") and resp["status"] != "304":
             error = "Error ('%s') resolving URL %s" % (resp["status"], url)
         elif not len(content) > 2:
             error = "No sets received from URL %s" %  url
@@ -553,11 +558,17 @@ class MWDLFetcher(AbsoluteURLFetcher):
 class NYPLFetcher(AbsoluteURLFetcher):
     def __init__(self, profile, uri_base):
         super(NYPLFetcher, self).__init__(profile, uri_base)
+        self.headers = {
+            "Authorization": "Token token=%s" % self.config.get("NYPL", "Token")
+        }
 
     def set_subresources(self):
         """Sets self.subresources
 
            Returns the error, else None
+        """
+        # We need to hardcode the NYPL collections to the profile with the
+        # public endpoint URL
         """
         self.subresources = {}
 
@@ -585,6 +596,8 @@ class NYPLFetcher(AbsoluteURLFetcher):
             return error
 
         self.subresources = subresources
+        """
+        return self.subresources
 
     def extract_content(self, content, url):
         error = None
